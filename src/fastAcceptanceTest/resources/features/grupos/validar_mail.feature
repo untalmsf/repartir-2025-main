@@ -13,6 +13,6 @@ Característica: Validar formato de correo de usuario
       Entonces debería fallar con mensaje "Email inválido"
 
     Escenario: Usuario con correo sin punto
-      Dado que existe un usuario con id "3" y correo "ana@mailcom"
+      Dado que existe un usuario con id "3" y correo "ana@gmailcom"
       Cuando consulto ese usuario
       Entonces debería fallar con mensaje "Email inválido"

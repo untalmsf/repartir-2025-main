@@ -15,7 +15,9 @@ public class Usuario {
     }
 
     public void setCorreo(String correo) {
-
+        if (correo == null || !correo.contains("@") || !correo.contains(".")) {
+            throw new IllegalArgumentException("Email inválido");
+        }
         this.correo = correo;
     }
 

@@ -30,4 +30,14 @@ public class RenombrarGrupoSteps extends FastCucumberSteps {
         grupo.setNombre(nuevoNombre);
     }
 
+    @Entonces("el grupo debería tener el nombre {string}")
+    public void elGrupoDeberiaTenerElNombre(String esperado) {
+        assertThat(grupo.getNombre()).isEqualTo(esperado);
+    }
+
+    @Entonces("debería ser informado que el nuevo nombre debe tener al menos 3 caracteres")
+    public void deberiaSerInformadoQueElNuevoNombreDebeTenerAlMenos3Caracteres() {
+        assertThat(mensajeError).isEqualTo("El nuevo nombre debe tener al menos 3 caracteres");
+    }
 }
+

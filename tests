@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+
+runJavaTest(){
+  if [ -z "$1" ] || [ "$1" = "all" ]; then
+    ./gradlew test check --info
+  elif [ "$1" = "unit" ]; then
+    ./gradlew test --info
+  else
+    ./gradlew "$1Test" --info
+  fi
+}
+
+runJsAcceptanceTest(){
+  npm run acceptance-test --prefix=src/main/frontend -- "$@"|| exit 1
+}
+
+runJSTest(){
+  if [ -z "$1" ] || [ "$1" = "acceptance" ] || [ "$1" = "all" ]; then
+    shift;  # will remove first arg from the "$@"
+    runJsAcceptanceTest "$@"  || exit 1
+  fi
+
+  if [ "$1" = "unit" ] || [ "$1" = "all" ]; then
+    npm run test --prefix=src/main/frontend || exit 1
+  fi
+}
+
+mostrarMensajeAyuda(){
+  echo "Se aceptan los paramentros java y js mas el tipo de prueba a ejecutar o el parametro all para ejecutar todas"
+  echo "./tests java [ unit | acceptance | fastAcceptance | integration | all (corre todas) ] "
+  echo "./tests js [ unit | acceptance | all (corre todas) ]"
+  echo "./tests all (lo mismo que hacer './tests java all && ./tests js all'"
+  echo ""
+  echo "Para ejecutar una o un subconjunto de pruebas de aceptación:"
+  echo "./tests js acceptance -g 'Nombre del escenario a matchear'"
+  echo "El 'Nombre del escenario a matchear' se comporta como una regular expression."
+}
+
+if [ $# = 0 ]; then
+    echo "Error"
+    mostrarMensajeAyuda
+    exit 1
+fi
+
+if [ "$1" = "java" ]; then
+    runJavaTest "$2"
+elif [ "$1" = "js" ]; then
+    shift;  # will remove first arg from the "$@"
+    runJSTest "$@"
+elif [ "$1" = "all" ]; then
+    runJavaTest "all"
+    runJSTest "all"
+else
+  echo "Error"
+  mostrarMensajeAyuda
+fi

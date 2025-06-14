@@ -1,0 +1,326 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.18'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id "org.flywaydb.flyway" version '8.5.13'
+	id 'jacoco'
+	id 'pmd'
+	id 'jvm-test-suite'
+}
+
+jar {
+	enabled = true
+	archiveBaseName = 'repartir'
+	archiveVersion = '1.0'
+}
+
+group = 'ar.com.grupoesfera'
+version = '1.0'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	runtimeOnly 'com.h2database:h2'
+	
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.mariadb.jdbc:mariadb-java-client:3.0.4'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:3.1.3'
+	implementation 'org.springdoc:springdoc-openapi-ui:1.6.4'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+}
+
+
+
+testing {
+    suites { 
+
+		def applyCommonDependencies = { suite -> 
+            suite.dependencies {
+				// project dependencies
+                implementation('org.springframework.boot:spring-boot-starter-web')
+				implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+				implementation('org.springframework.cloud:spring-cloud-starter-openfeign:3.1.3')
+				implementation('org.springdoc:springdoc-openapi-ui:1.6.4')
+
+				// deafult test dependencies
+                implementation('org.springframework.boot:spring-boot-starter-test')
+            }
+        }
+
+		def applyControllersTestDependencies = { suite -> 
+            suite.dependencies {
+                implementation('io.rest-assured:rest-assured:4.4.0')
+				implementation('net.javacrumbs.json-unit:json-unit:2.27.0')
+				implementation('org.testcontainers:junit-jupiter:1.20.2')
+            }
+        }
+
+		def applyDbTestDependencies = { suite -> 
+            suite.dependencies {
+                implementation('org.flywaydb:flyway-core:8.2.0')
+				implementation('org.testcontainers:mariadb:1.16.2')
+            }
+        }
+
+		def applyUITestDependencies = { suite -> 
+            suite.dependencies {
+                implementation('org.seleniumhq.selenium:selenium-java:3.141.59')
+				implementation('io.github.bonigarcia:webdrivermanager:5.8.0')
+				implementation('org.apache.httpcomponents.client5:httpclient5:5.2.1')
+            }
+        }
+
+		def applyAcceptanceTestDependencies = { suite -> 
+            suite.dependencies {
+                implementation('io.cucumber:cucumber-java:6.10.4')
+				implementation('io.cucumber:cucumber-junit-platform-engine:6.10.4')
+				implementation('io.cucumber:cucumber-spring:6.10.4')
+            }
+        }
+
+
+        test { 
+            useJUnitJupiter() 
+        }
+
+
+		dbTest(JvmTestSuite) {
+			dependencies {
+                implementation project() 
+            }
+
+			sources { 
+                java { 
+                    srcDirs = ['src/integrationTest/dbTest/java'] 
+                }
+				resources { 
+                    srcDirs = ['src/integrationTest/dbTest/resources'] 
+                }
+            }
+		}
+
+
+        taggedTest(JvmTestSuite) { 
+            dependencies {
+                implementation project() 
+            }
+
+			sources { 
+                java { 
+                    srcDirs = [
+						'src/test/java', 
+						'src/integrationTest/apiControllersTest/java',
+                        'src/integrationTest/apiExternaTest/java',
+                        'src/integrationTest/dbTest/java',
+                        'src/uiTest/java'
+					] 
+                }
+                resources { 
+                    srcDirs = ['src/integrationTest/apiExternaTest/resources',
+                    'src/integrationTest/dbTest/resources',
+                    'src/uiTest/resources'] 
+                }
+            }
+
+            targets { 
+                all {
+                    testTask.configure {
+						useJUnitPlatform {
+							includeTags System.getProperty('tags', '*')
+						}
+                    }
+                }
+            }
+        }
+
+		apiControllersTest(JvmTestSuite) { 
+            dependencies {
+                implementation project() 
+            }
+
+			sources { 
+                java { 
+                    srcDirs = ['src/integrationTest/apiControllersTest/java'] 
+                }
+            }
+        }
+
+		apiExternaTest(JvmTestSuite) { 
+            dependencies {
+                implementation project() 
+            }
+
+			sources { 
+                java { 
+                    srcDirs = ['src/integrationTest/apiExternaTest/java'] 
+                }
+				resources { 
+                    srcDirs = ['src/integrationTest/apiExternaTest/resources'] 
+                }
+            }
+        }
+
+		uiTest(JvmTestSuite) {
+			dependencies {
+                implementation project() 
+				implementation sourceSets.dbTest.output
+				implementation sourceSets.apiExternaTest.output
+				implementation sourceSets.apiControllersTest.output
+            }
+
+			targets { 
+                all {
+                    testTask.configure {
+						systemProperties = System.properties
+                    }
+                }
+            }
+		}
+
+		acceptanceTest(JvmTestSuite) {
+			dependencies {
+                implementation project()
+            }
+
+			targets { 
+                all {
+                    testTask.configure {
+						systemProperties = System.properties
+						systemProperty 'cucumber.filter.name', System.getProperty('cucumber.filter.name', '.*')
+                    }
+                }
+            }
+		}
+
+		fastAcceptanceTest(JvmTestSuite) {
+			dependencies {
+                implementation project()
+            }
+
+			targets { 
+                all {
+                    testTask.configure {
+						systemProperties = System.properties
+						systemProperty 'cucumber.filter.name', System.getProperty('cucumber.filter.name', '.*')
+                    }
+                }
+            }
+		}
+
+		applyCommonDependencies(taggedTest)
+		applyControllersTestDependencies(taggedTest)
+        applyDbTestDependencies(taggedTest)
+        applyUITestDependencies(taggedTest)
+
+		applyCommonDependencies(apiControllersTest)
+		applyControllersTestDependencies(apiControllersTest)
+
+		applyCommonDependencies(dbTest)
+		applyDbTestDependencies(dbTest)
+
+		applyCommonDependencies(apiExternaTest)
+		applyControllersTestDependencies(apiExternaTest)
+
+		applyCommonDependencies(uiTest)
+		applyUITestDependencies(uiTest)
+
+		applyCommonDependencies(acceptanceTest)
+		applyUITestDependencies(acceptanceTest)
+		applyAcceptanceTestDependencies(acceptanceTest)
+		applyDbTestDependencies(acceptanceTest)
+
+		applyCommonDependencies(fastAcceptanceTest)
+		applyAcceptanceTestDependencies(fastAcceptanceTest)
+    }
+}
+
+
+
+tasks.named('check') { 
+    dependsOn(testing.suites.test)
+	dependsOn(testing.suites.apiControllersTest)
+	dependsOn(testing.suites.apiExternaTest)
+	dependsOn(testing.suites.dbTest)
+	dependsOn(testing.suites.uiTest)
+	dependsOn(testing.suites.acceptanceTest)
+	dependsOn(testing.suites.fastAcceptanceTest)
+}
+
+flyway {
+	user = 'repartirUser'
+	password = 'repartirPassword'
+	url = 'jdbc:mariadb://localhost:3306/repartir'
+	locations = [ 'filesystem:src/main/db/migrations' ]
+}
+
+jacoco {
+	toolVersion = "0.8.8"
+}
+
+jacocoTestReport {
+	sourceSets sourceSets.main
+	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+	reports {
+		html.destination file("${buildDir}/reports/jacoco/html")
+	}
+}
+
+pmd {
+	toolVersion = "6.49.0"
+	ignoreFailures = true
+	ruleSets = [
+		'rulesets/java/quickstart.xml',
+	]
+}
+
+task demo(type: org.springframework.boot.gradle.tasks.run.BootRun) {
+	systemProperty "spring.profiles.active", "manualTest"
+	classpath = sourceSets.dbTest.runtimeClasspath
+	main = "ar.com.grupoesfera.repartir.RepartirApplication"
+}
+
+// https://stackoverflow.com/a/36130467
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+tasks.withType(Test) {
+    testLogging {
+        // set options for log level LIFECYCLE
+        events TestLogEvent.FAILED,
+               TestLogEvent.PASSED,
+               TestLogEvent.SKIPPED,
+               TestLogEvent.STANDARD_OUT
+        exceptionFormat TestExceptionFormat.FULL
+        showExceptions true
+        showCauses true
+        showStackTraces true
+
+        // set options for log level DEBUG and INFO
+        debug {
+            events TestLogEvent.STARTED,
+                   TestLogEvent.FAILED,
+                   TestLogEvent.PASSED,
+                   TestLogEvent.SKIPPED,
+                   TestLogEvent.STANDARD_ERROR,
+                   TestLogEvent.STANDARD_OUT
+            exceptionFormat TestExceptionFormat.FULL
+        }
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
+                def startItem = '|  ', endItem = '  |'
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+            }
+        }
+    }
+}

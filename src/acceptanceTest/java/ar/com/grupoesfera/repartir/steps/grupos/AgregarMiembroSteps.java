@@ -24,6 +24,15 @@ public class AgregarMiembroSteps {
         grupo.getMiembros().add("Miembro3");
     }
     
+    @Dado("que el grupo {string} existe con dos miembros")
+    public void que_el_grupo_existe_con_dos_miembros(String nombre) {
+        grupo = new Grupo();
+        grupo.setNombre(nombre);
+        grupo.setMiembros(new ArrayList<>());
+        grupo.getMiembros().add("Miembro1");
+        grupo.getMiembros().add("Miembro2");
+    }
+
     @Cuando("el usuario agrega un nuevo miembro llamado {string}")
     public void el_usuario_agrega_un_nuevo_miembro_llamado(String nombre) {
         try {
@@ -36,10 +45,20 @@ public class AgregarMiembroSteps {
             mensajeError = e.getMessage();
         }
     }
+
+    @Cuando("el usuario intenta agregar un miembro sin nombre")
+    public void el_usuario_intenta_agregar_un_miembro_sin_nombre() {
+        el_usuario_agrega_un_nuevo_miembro_llamado("");
+    }
     
     @Entonces("el grupo {string} debería tener cuatro miembros")
     public void el_grupo_deberia_tener_cuatro_miembros(String nombre) {
         assertThat(grupo.getNombre()).isEqualTo(nombre);
         assertThat(grupo.getMiembros().size()).isEqualTo(4);
+    }
+
+     @Entonces("debería mostrarse un mensaje de error indicando que el nombre no puede estar vacío")
+    public void deberia_mostrarse_un_mensaje_de_error_indicando_que_el_nombre_no_puede_estar_vacío() {
+        assertThat(mensajeError).isEqualTo("El nombre no puede estar vacío");
     }
 }

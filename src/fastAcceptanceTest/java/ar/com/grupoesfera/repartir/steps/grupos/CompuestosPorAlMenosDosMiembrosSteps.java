@@ -29,4 +29,18 @@ public class CompuestosPorAlMenosDosMiembrosSteps extends FastCucumberSteps {
 
         assertThat( this.grupo.estaFormado() ).isFalse();
     }
+    @Cuando("el usuario intenta crear un grupo indicando los miembros {string} y {string}")
+    public void elUsuarioIntentaCrearUnGrupoIndicandoLosMiembrosY(String miembro1, String miembro2) {
+        List<String> miembros = new LinkedList<>();
+        miembros.add(miembro1);
+        miembros.add(miembro2);
+
+        grupo = new Grupo();
+        grupo.setMiembros(miembros);
+    }
+
+    @Entonces("debería crear el grupo con dos o más miembros")
+    public void deberiaCrearElGrupoConDosOMasMiembros() {
+        assertThat(this.grupo.estaFormado()).isTrue();
+    }
 }

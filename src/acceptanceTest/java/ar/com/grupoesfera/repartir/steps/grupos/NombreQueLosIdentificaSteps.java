@@ -79,13 +79,24 @@ public class NombreQueLosIdentificaSteps extends CucumberSteps {
 
     @Entonces("no debería crear el grupo sin nombre")
     public void noDeberiaCrearElGrupoSinNombre() {
-
-        // TODO
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        List<WebElement> grupoTR = wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(
+            By.cssSelector("app-grupos table tr"), 0));
+        
+        if (grupoTR.size() == 1) {
+            return;
+        }
+        boolean existeGrupoSinNombre = grupoTR.stream()
+            .skip(1) 
+            .map(tr -> tr.findElements(By.tagName("td")).get(1).getText())
+            .anyMatch(nombre -> nombre == null || nombre.trim().isEmpty());
+        
+        assertThat(existeGrupoSinNombre).isFalse();
     }
 
     @Y("debería ser informado que no puede crear un grupo sin nombre")
     public void deberiaSerInformadoQueNoPuedeCrearUnGrupoSinNombre() {
-        shouldShowAnError("No se puede guardar");
+        shouldShowAnError("El grupo debe tener un nombre");
     }
 
 }

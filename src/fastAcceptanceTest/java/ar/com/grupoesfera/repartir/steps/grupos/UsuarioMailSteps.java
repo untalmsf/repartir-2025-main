@@ -24,4 +24,16 @@ public class UsuarioMailSteps {
     public void consultoUsuario() {
         // No hace nada: la validación ocurre en el setter
     }
+   
+    @Entonces("no debería haber error")
+    public void sinError() {
+        assertThat(error).isNull();
+    }
+
+    @Entonces("debería fallar con mensaje {string}")
+    public void errorConMensaje(String msg) {
+        assertThat(error)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining(msg);
+    }
 }

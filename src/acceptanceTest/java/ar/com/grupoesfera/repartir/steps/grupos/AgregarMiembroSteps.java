@@ -36,15 +36,12 @@ public class AgregarMiembroSteps {
     @Cuando("el usuario agrega un nuevo miembro llamado {string}")
     public void el_usuario_agrega_un_nuevo_miembro_llamado(String nombre) {
         try {
-            if (nombre == null || nombre.trim().isEmpty()) {
-                throw new IllegalArgumentException("El nombre no puede estar vacío");
-            }
-            grupo.getMiembros().add(nombre);
+            grupo.agregarMiembro(nombre);
             mensajeError = null;
         } catch (IllegalArgumentException e) {
             mensajeError = e.getMessage();
-        }
     }
+    
 
     @Cuando("el usuario intenta agregar un miembro sin nombre")
     public void el_usuario_intenta_agregar_un_miembro_sin_nombre() {

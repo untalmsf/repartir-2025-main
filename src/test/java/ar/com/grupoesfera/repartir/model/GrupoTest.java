@@ -54,12 +54,19 @@ class GrupoTest {
     }
 
     @Test
-    void noEstaFormadoCuandoLosMiembrosSonNulos() {
-
+    void noPermiteMiembrosNulos() {
         Grupo grupo = new Grupo();
 
-        grupo.setMiembros(null);
+        assertThatThrownBy(() -> grupo.setMiembros(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("La lista de miembros no puede ser nula");
+    }
+    @Test
+    void noPermiteNombresVacios() {
+        Grupo grupo = new Grupo();
 
-        assertThat(grupo.estaFormado()).isFalse();
+        assertThatThrownBy(() -> grupo.setMiembros(Arrays.asList("mtolosa", "  ")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("El nombre no puede estar vacío");
     }
 }

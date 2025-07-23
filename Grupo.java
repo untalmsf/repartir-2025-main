@@ -56,7 +56,13 @@ public class Grupo {
     }
 
     public void setMiembros(List<String> miembros) {
-        this.miembros = miembros;
+        if (miembros == null) {
+            throw new IllegalArgumentException("La lista de miembros no puede ser nula");
+        }
+        this.miembros = new java.util.ArrayList<>();
+        for (String miembro : miembros) {
+            agregarMiembro(miembro);
+        }
     }
     
     public void agregarMiembro(String nombreMiembro) {
